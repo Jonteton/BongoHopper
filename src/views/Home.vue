@@ -1,5 +1,6 @@
 <template>
-  <div class="home">
+  <div class="home">   
+    <!-- hej -->
     <img alt="Vue logo" src="../assets/logo.png" />
     <HelloWorld msg="yoho" />
   </div>
