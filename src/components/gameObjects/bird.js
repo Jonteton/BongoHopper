@@ -4,7 +4,7 @@ export default class Bird {
         this.y = y0;
         this.r = radius;
         this.game_Environment = world;
-        this.gravity = 0.1;
+        this.gravity = 0.05;
         this.velocityY = 0
         this.accelerationY = 0
 
