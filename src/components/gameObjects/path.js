@@ -85,7 +85,6 @@ export default class Path {
             nextPointY = this.nextPointY(currentPointX, currentPointY, nextPointX, Math.PI/this.lowSlopeCoefficient, "upwards")
 
             if(nextPointY < this.lowSlopeTop){
-                console.log(this.lowSlopeTop)
                 this.up = false
                 this.generateNewTop("LowHill")
             }
@@ -154,7 +153,6 @@ export default class Path {
 
     generateNewTop(hillType){
         if(hillType == "LowHill"){
-            console.log("new hill")
             this.lowSlopeTop = Math.floor(Math.random() * (this.maxHeight - 100) + 100)
         }
     }
