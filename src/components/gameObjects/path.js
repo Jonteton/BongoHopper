@@ -1,3 +1,9 @@
+// This is the Path class.
+// Path generates a set of Points from the Points class to then draw the curves between
+// The Path is proceduraly generated, meaining that the height, depth etc of curves is randomly generated.
+// NOTE:
+// The points have a fixed X-distane between them, this is a requirement for tracking bird position
+
 import Point from "./point.js"
 export default class Path {
     constructor(originX, originY, canvasWidth, canvasHeight, world, pointStepSize) {
@@ -22,38 +28,47 @@ export default class Path {
         this.enableHill = true
         this.up = true
 
-        this.friction = 0.004
-        this.velocityX = 0
+        //Below variable has to be changed, currently not randomized
+        this.randomizedBottomHeight = this.canvasHeight - 50
+
+        this.minvelocityX = 10
+        this.velocityX = this.minvelocityX
+
         this.accelerationX = 0
         this.maxAcceleration = 6
+
+        this.preLoadConstant = 150
+        this.preLoadLimitX = this.canvasWidth + this.preLoadConstant
 
     }
 
     createPath() {
+        // Handles how the path is generated
         this.updatePath()
         this.generatePath()
         this.drawPath()
     }
 
     updatePath(){
-        this.applyFriction()
+        // Updates the points on the path, removes the ones that are offscreen in terms of X-value
+        // The other points are moved forward according to the velocity
+        let offScreen = -40
         for(let i = 0; i < this.points.length; i++){
             this.points[i].x -= this.velocityX
-            if(this.points[i].x < -70){
-              //If point off screen, remove
+
+            if(this.points[i].x < offScreen){
               this.points.splice(0, i)
             }
         }
     }
 
     generatePath(){
-        // This function creates the points that when drawn creates the path
-        // Could improve how first points are generated
+        // Creates the "Path Points"
         let currentPointX = this.points[this.points.length - 1].x
         let currentPointY = this.points[this.points.length - 1].y
         let nextPointX = currentPointX + this.pointStepSize
 
-        if(this.points.length > 2 && nextPointX < this.canvasWidth + 2* this.pointStepSize){
+        if(this.points.length > 2 && nextPointX < this.preLoadLimitX){
             // Points already exist, create one after the last one
             this.proceduralGenerator(currentPointX, currentPointY, nextPointX)
         } 
@@ -64,43 +79,48 @@ export default class Path {
     }
 
     initializePath() {
-        //Creates the path when game is first started
+        //Creates the path when game is first started (Happends once)
         let startingHeight = this.originY
-        while(this.points[this.points.length - 1].x < this.canvasWidth + 2*this.pointStepSize){
-            let nextPointX = this.points[this.points.length - 1].x + this.pointStepSize
+        let nextPointX = null
+        while(this.points[this.points.length - 1].x < this.preLoadLimitX){
+            nextPointX = this.points[this.points.length - 1].x + this.pointStepSize
             this.points.push(new Point(nextPointX, startingHeight))
         }
     }
 
     proceduralGenerator(currentPointX, currentPointY, nextPointX){
+        // Generates random hills on the path
+        // The randomly generated variables are height and angle
         this.createLowHill(currentPointX, currentPointY, nextPointX)
     }
 
     createLowHill(currentPointX, currentPointY, nextPointX){
         let nextPointY = null
         if(this.up == true){
+            // Slope going upwards?
             if(this.lowSlopeCoefficient < 12){
+                // Dummy variable for trying to make a nice slope !!CHANGE THIS!! (is bad)
                 this.lowSlopeCoefficient = this.lowSlopeCoefficient*1.03
             }
             nextPointY = this.nextPointY(currentPointX, currentPointY, nextPointX, Math.PI/this.lowSlopeCoefficient, "upwards")
 
             if(nextPointY < this.lowSlopeTop){
+                // Have we reached the top?
                 this.up = false
                 this.generateNewTop("LowHill")
             }
         } if (this.up == false){
+            // Slope going downwards?
             this.lowSlopeCoefficient = this.lowSlopeCoefficient*0.97
             nextPointY = this.nextPointY(currentPointX, currentPointY, nextPointX, Math.PI/-this.lowSlopeCoefficient, "downwards")
-            if(nextPointY > this.canvasHeight -50){
+
+            if(nextPointY > this.randomizedBottomHeight){
+                //Have we reached the bottom?
                 this.up = true
                 this.lowSlopeCoefficient = 2
             }
         }
         this.points.push(new Point(nextPointX, nextPointY))
-
-    }
-
-    createMediumHill(currentPointX, currentPointY, nextPointX){
 
     }
 
@@ -137,18 +157,8 @@ export default class Path {
 
     increaseVelocity(){
         if(this.accelerationX < this.maxAcceleration){
-            this.accelerationX += 0.2
-            this.velocityX = this.accelerationX
         }
         this.updatePath()
-    }
-
-    applyFriction() {
-        if(this.accelerationX > 0){
-            this.accelerationX -= this.friction*this.accelerationX
-            this.velocityX = this.accelerationX
-        }
-
     }
 
     generateNewTop(hillType){

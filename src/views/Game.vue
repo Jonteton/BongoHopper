@@ -1,9 +1,5 @@
 <template>
   <div class="Game">
-    <h1>Hej och välkommen till vårt spel, hora</h1>
-      <div id="nav">
-      <router-link to="/">Home</router-link> |
-    </div>
     <GameComponent/>
   </div>
 </template>
