@@ -22,6 +22,9 @@ export default {
       game_Environment: null,
       bird : null,
       path: null,
+
+      fps: null, 
+      times: [],
       
       pointStepSize: 5,
 
@@ -127,6 +130,7 @@ export default {
       //FPS på 50 ger att antalet refresh/sekund = 1000/50 = 20
       let refreshTimer = 10
       setInterval(() => this.update(), refreshTimer)
+
     },
 
     keyHandler(keypress) {

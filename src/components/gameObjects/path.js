@@ -23,10 +23,9 @@ export default class Path {
         this.lowSlopeCoefficient = 2
         this.lowSlopeTop = Math.floor(Math.random() * (this.minHeight - this.maxHeight) + this.maxHeight)
 
-
+        this.angleInDegrees = null
         this.enablePointGeneration = true
         this.enableHill = true
-        this.up = true
 
         //Below variable has to be changed, currently not randomized
         this.randomizedBottomHeight = this.canvasHeight - 50
@@ -70,7 +69,12 @@ export default class Path {
 
         if(this.points.length > 2 && nextPointX < this.preLoadLimitX){
             // Points already exist, create one after the last one
-            this.proceduralGenerator(currentPointX, currentPointY, nextPointX)
+            while(nextPointX < this.preLoadLimitX){
+                this.proceduralGenerator(currentPointX, currentPointY, nextPointX)
+                currentPointX = this.points[this.points.length - 1].x
+                currentPointY = this.points[this.points.length - 1].y
+                nextPointX = currentPointX + this.pointStepSize
+            }
         } 
         if(this.points.length == 1) {
             // Points doesnt exist, generate new
@@ -96,29 +100,14 @@ export default class Path {
 
     createLowHill(currentPointX, currentPointY, nextPointX){
         let nextPointY = null
-        if(this.up == true){
-            // Slope going upwards?
-            if(this.lowSlopeCoefficient < 12){
-                // Dummy variable for trying to make a nice slope !!CHANGE THIS!! (is bad)
-                this.lowSlopeCoefficient = this.lowSlopeCoefficient*1.03
-            }
-            nextPointY = this.nextPointY(currentPointX, currentPointY, nextPointX, Math.PI/this.lowSlopeCoefficient, "upwards")
+        let angleInRadians = null
+        this.angleInDegrees += 1
+        angleInRadians = this.angleInDegrees*(Math.PI/180)
+        nextPointY = this.nextPointY(currentPointX, currentPointY, nextPointX, angleInRadians, "upwards")
 
-            if(nextPointY < this.lowSlopeTop){
-                // Have we reached the top?
-                this.up = false
-                this.generateNewTop("LowHill")
-            }
-        } if (this.up == false){
-            // Slope going downwards?
-            this.lowSlopeCoefficient = this.lowSlopeCoefficient*0.97
-            nextPointY = this.nextPointY(currentPointX, currentPointY, nextPointX, Math.PI/-this.lowSlopeCoefficient, "downwards")
-
-            if(nextPointY > this.randomizedBottomHeight){
-                //Have we reached the bottom?
-                this.up = true
-                this.lowSlopeCoefficient = 2
-            }
+        if(nextPointY < this.lowSlopeTop){
+            // Have we reached the top?
+            this.generateNewTop("LowHill")
         }
         this.points.push(new Point(nextPointX, nextPointY))
 
@@ -145,11 +134,11 @@ export default class Path {
     nextPointY(p1x, p1y, p2x, angle, direction){
         //Identifies the y-position of the next point (p2)
         let deltaHeight = 0
-        let heightMultiplier = 1
+        let amplitude = 1
         if(direction == "upwards"){
-            deltaHeight = heightMultiplier*Math.sin(angle)*(p1x-p2x)
+            deltaHeight = amplitude*Math.sin(angle)*(p1x-p2x)
         } else if (direction == "downwards"){
-            deltaHeight = heightMultiplier*Math.sin(angle)*(p1x-p2x)
+            deltaHeight = amplitude*Math.sin(angle)*(p1x-p2x)
         }
         let p2y = deltaHeight + p1y
         return p2y
@@ -166,4 +155,5 @@ export default class Path {
             this.lowSlopeTop = Math.floor(Math.random() * (this.maxHeight - 100) + 100)
         }
     }
+
 }
