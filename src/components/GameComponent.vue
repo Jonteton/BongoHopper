@@ -147,7 +147,7 @@ export default {
     movementHandler(message) {
       //If space is pressed perform action
       if(message == "dive"){
-          this.path.increaseVelocity()
+        this.bird.dive()
       } 
     },
 

@@ -17,15 +17,11 @@ export default class Path {
         this.originPoint = new Point(this.originX, this.originY)
         this.points = [this.originPoint]
 
-        //Remeber Y-axis goes downwards, so values are reversed
-        this.maxHeight = 200
-        this.minHeight = 100
-        this.lowSlopeCoefficient = 2
-        this.lowSlopeTop = Math.floor(Math.random() * (this.minHeight - this.maxHeight) + this.maxHeight)
+        this.minAmplitude = 0.5
+        this.maxAmplitude = 1.5
+        this.hillAmplitude = 1
 
         this.angleInDegrees = null
-        this.enablePointGeneration = true
-        this.enableHill = true
 
         //Below variable has to be changed, currently not randomized
         this.randomizedBottomHeight = this.canvasHeight - 50
@@ -95,20 +91,21 @@ export default class Path {
     proceduralGenerator(currentPointX, currentPointY, nextPointX){
         // Generates random hills on the path
         // The randomly generated variables are height and angle
-        this.createLowHill(currentPointX, currentPointY, nextPointX)
+
+        this.generateHill(currentPointX, currentPointY, nextPointX)
     }
 
-    createLowHill(currentPointX, currentPointY, nextPointX){
+    generateHill(currentPointX, currentPointY, nextPointX){
         let nextPointY = null
         let angleInRadians = null
+
         this.angleInDegrees += 1
         angleInRadians = this.angleInDegrees*(Math.PI/180)
-        nextPointY = this.nextPointY(currentPointX, currentPointY, nextPointX, angleInRadians, "upwards")
-
-        if(nextPointY < this.lowSlopeTop){
-            // Have we reached the top?
-            this.generateNewTop("LowHill")
+        if (this.angleInDegrees >= 360){
+            this.angleInDegrees = 0
+            this.hillAmplitude = this.generateAmplitude()
         }
+        nextPointY = this.nextPointY(currentPointX, currentPointY, nextPointX, angleInRadians, this.angleInDegrees)
         this.points.push(new Point(nextPointX, nextPointY))
 
     }
@@ -131,29 +128,36 @@ export default class Path {
     }   
 
     //Below are math formulas
-    nextPointY(p1x, p1y, p2x, angle, direction){
+    nextPointY(p1x, p1y, p2x, angle){
         //Identifies the y-position of the next point (p2)
         let deltaHeight = 0
-        let amplitude = 1
-        if(direction == "upwards"){
-            deltaHeight = amplitude*Math.sin(angle)*(p1x-p2x)
-        } else if (direction == "downwards"){
-            deltaHeight = amplitude*Math.sin(angle)*(p1x-p2x)
-        }
+        let yOffset = 0
+        let frequency = 0
+        deltaHeight = this.hillAmplitude*Math.sin(angle)*(p1x-p2x)
         let p2y = deltaHeight + p1y
         return p2y
     }
 
     increaseVelocity(){
-        if(this.accelerationX < this.maxAcceleration){
-        }
-        this.updatePath()
     }
 
     generateNewTop(hillType){
         if(hillType == "LowHill"){
             this.lowSlopeTop = Math.floor(Math.random() * (this.maxHeight - 100) + 100)
         }
+    }
+
+    generateAngle(){
+
+    }
+
+    generateOffset(){
+    }
+
+    generateAmplitude(){
+        //Generates a value between min and max amplitude
+        let amplitude = Math.random() * (this.maxAmplitude - this.minAmplitude) + this.minAmplitude
+        return amplitude
     }
 
 }

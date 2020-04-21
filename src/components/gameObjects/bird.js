@@ -45,6 +45,11 @@ export default class Bird {
         this.drawBird()
     }
 
+    dive(){
+        this.accelerationY += 1.5
+        this.velocityY = this.accelerationY
+    }
+
     pythagorean(p1x, p1y, p2x, p2y){
         return (Math.sqrt(Math.pow((p2x-p1x), 2) + Math.pow((p2y-p1y), 2)))
       }
