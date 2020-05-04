@@ -22,9 +22,6 @@
         <router-link class="allbuttoncontainer" to="/score"
           ><button class="settingsbutton">Scores</button></router-link
         >
-        <router-link class="allbuttoncontainer" to="/settings"
-          ><button class="settingsbutton">Settings</button></router-link
-        >
 
       </div>
     </div>
