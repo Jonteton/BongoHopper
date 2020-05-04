@@ -1,3 +1,9 @@
+// This is the Path class.
+// Path generates a set of Points from the Points class to then draw the curves between
+// The Path is proceduraly generated, meaining that the height, depth etc of curves is randomly generated.
+// NOTE:
+// The points have a fixed X-distane between them, this is a requirement for tracking bird position
+
 import Point from "./point.js"
 export default class Path {
     constructor(originX, originY, canvasWidth, canvasHeight, world, pointStepSize) {
@@ -11,52 +17,61 @@ export default class Path {
         this.originPoint = new Point(this.originX, this.originY)
         this.points = [this.originPoint]
 
-        //Remeber Y-axis goes downwards, so values are reversed
-        this.maxHeight = 200
-        this.minHeight = 100
-        this.lowSlopeCoefficient = 2
-        this.lowSlopeTop = Math.floor(Math.random() * (this.minHeight - this.maxHeight) + this.maxHeight)
+        this.minAmplitude = 0.5
+        this.maxAmplitude = 1.5
+        this.hillAmplitude = 1
 
+        this.angleInDegrees = null
 
-        this.enablePointGeneration = true
-        this.enableHill = true
-        this.up = true
+        //Below variable has to be changed, currently not randomized
+        this.randomizedBottomHeight = this.canvasHeight - 50
 
-        this.friction = 0.004
-        this.velocityX = 0
+        this.minvelocityX = 10
+        this.velocityX = this.minvelocityX
+
         this.accelerationX = 0
         this.maxAcceleration = 6
+
+        this.preLoadConstant = 150
+        this.preLoadLimitX = this.canvasWidth + this.preLoadConstant
 
     }
 
     createPath() {
+        // Handles how the path is generated
         this.updatePath()
         this.generatePath()
         this.drawPath()
     }
 
     updatePath(){
-        this.applyFriction()
+        // Updates the points on the path, removes the ones that are offscreen in terms of X-value
+        // The other points are moved forward according to the velocity
+        let offScreen = -40
         for(let i = 0; i < this.points.length; i++){
             this.points[i].x -= this.velocityX
-            if(this.points[i].x < -70){
-              //If point off screen, remove
+
+            if(this.points[i].x < offScreen){
               this.points.splice(0, i)
             }
         }
     }
 
     generatePath(){
-        // This function creates the points that when drawn creates the path
-        // Could improve how first points are generated
+        // Creates the "Path Points"
         let currentPointX = this.points[this.points.length - 1].x
         let currentPointY = this.points[this.points.length - 1].y
         let nextPointX = currentPointX + this.pointStepSize
 
-        if(this.points.length > 2 && nextPointX < this.canvasWidth + 2* this.pointStepSize){
+        if(this.points.length > 2 && nextPointX < this.preLoadLimitX){
             // Points already exist, create one after the last one
-            this.proceduralGenerator(currentPointX, currentPointY, nextPointX)
-        } 
+            while(nextPointX < this.preLoadLimitX){
+                this.proceduralGenerator(currentPointX, currentPointY, nextPointX)
+                currentPointX = this.points[this.points.length - 1].x
+                currentPointY = this.points[this.points.length - 1].y
+                nextPointX = currentPointX + this.pointStepSize
+            }
+        }
         if(this.points.length == 1) {
             // Points doesnt exist, generate new
             this.initializePath()
@@ -64,43 +79,34 @@ export default class Path {
     }
 
     initializePath() {
-        //Creates the path when game is first started
+        //Creates the path when game is first started (Happends once)
         let startingHeight = this.originY
-        while(this.points[this.points.length - 1].x < this.canvasWidth + 2*this.pointStepSize){
-            let nextPointX = this.points[this.points.length - 1].x + this.pointStepSize
+        let nextPointX = null
+        while(this.points[this.points.length - 1].x < this.preLoadLimitX){
+            nextPointX = this.points[this.points.length - 1].x + this.pointStepSize
             this.points.push(new Point(nextPointX, startingHeight))
         }
     }
 
     proceduralGenerator(currentPointX, currentPointY, nextPointX){
-        this.createLowHill(currentPointX, currentPointY, nextPointX)
+        // Generates random hills on the path
+        // The randomly generated variables are height and angle
+
+        this.generateHill(currentPointX, currentPointY, nextPointX)
     }
 
-    createLowHill(currentPointX, currentPointY, nextPointX){
+    generateHill(currentPointX, currentPointY, nextPointX){
         let nextPointY = null
-        if(this.up == true){
-            if(this.lowSlopeCoefficient < 12){
-                this.lowSlopeCoefficient = this.lowSlopeCoefficient*1.03
-            }
-            nextPointY = this.nextPointY(currentPointX, currentPointY, nextPointX, Math.PI/this.lowSlopeCoefficient, "upwards")
+        let angleInRadians = null
 
-            if(nextPointY < this.lowSlopeTop){
-                this.up = false
-                this.generateNewTop("LowHill")
-            }
-        } if (this.up == false){
-            this.lowSlopeCoefficient = this.lowSlopeCoefficient*0.97
-            nextPointY = this.nextPointY(currentPointX, currentPointY, nextPointX, Math.PI/-this.lowSlopeCoefficient, "downwards")
-            if(nextPointY > this.canvasHeight -50){
-                this.up = true
-                this.lowSlopeCoefficient = 2
-            }
+        this.angleInDegrees += 1
+        angleInRadians = this.angleInDegrees*(Math.PI/180)
+        if (this.angleInDegrees >= 360){
+            this.angleInDegrees = 0
+            this.hillAmplitude = this.generateAmplitude()
         }
+        nextPointY = this.nextPointY(currentPointX, currentPointY, nextPointX, angleInRadians, this.angleInDegrees)
         this.points.push(new Point(nextPointX, nextPointY))
-
-    }
-
-    createMediumHill(currentPointX, currentPointY, nextPointX){
 
     }
 
@@ -108,7 +114,7 @@ export default class Path {
         // This function draws the path to the screen that was generated by generatePath
         this.game_Environment.strokeStyle = "red";
         this.game_Environment.lineWidth = 3
-        
+
         this.game_Environment.moveTo(this.points[0].x, this.points[0].y)
         this.game_Environment.beginPath();
         for(let i = this.points.length - 1; i > 0; i--){
@@ -119,36 +125,20 @@ export default class Path {
             this.game_Environment.lineTo(this.points[i-1].x, this.points[i-1].y)
         }
         this.game_Environment.stroke()
-    }   
+    }
 
     //Below are math formulas
-    nextPointY(p1x, p1y, p2x, angle, direction){
+    nextPointY(p1x, p1y, p2x, angle){
         //Identifies the y-position of the next point (p2)
         let deltaHeight = 0
-        let heightMultiplier = 1
-        if(direction == "upwards"){
-            deltaHeight = heightMultiplier*Math.sin(angle)*(p1x-p2x)
-        } else if (direction == "downwards"){
-            deltaHeight = heightMultiplier*Math.sin(angle)*(p1x-p2x)
-        }
+        let yOffset = 0
+        let frequency = 0
+        deltaHeight = this.hillAmplitude*Math.sin(angle)*(p1x-p2x)
         let p2y = deltaHeight + p1y
         return p2y
     }
 
     increaseVelocity(){
-        if(this.accelerationX < this.maxAcceleration){
-            this.accelerationX += 0.2
-            this.velocityX = this.accelerationX
-        }
-        this.updatePath()
-    }
-
-    applyFriction() {
-        if(this.accelerationX > 0){
-            this.accelerationX -= this.friction*this.accelerationX
-            this.velocityX = this.accelerationX
-        }
-
     }
 
     generateNewTop(hillType){
@@ -156,4 +146,18 @@ export default class Path {
             this.lowSlopeTop = Math.floor(Math.random() * (this.maxHeight - 100) + 100)
         }
     }
+
+    generateAngle(){
+
+    }
+
+    generateOffset(){
+    }
+
+    generateAmplitude(){
+        //Generates a value between min and max amplitude
+        let amplitude = Math.random() * (this.maxAmplitude - this.minAmplitude) + this.minAmplitude
+        return amplitude
+    }
+
 }

@@ -1,5 +1,3 @@
-
-
 <template>
   <div>
     <canvas ref="game_canvas"></canvas>
@@ -15,19 +13,20 @@ import Path from "./gameObjects/path.js"
 
 export default {
   name: "Game",
-  props: {
-    msg: String
-  },
 
   data: function(){
     return {
       canvas: null,
-      canvas_width: 800,
-      canvas_height: 600,
+      canvas_width: window.innerWidth,
+      canvas_height: window.innerHeight,
       game_Environment: null,
       bird : null,
       path: null,
-      pointStepSize: 10,
+
+      fps: null,
+      times: [],
+
+      pointStepSize: 5,
 
       keyFlagRight: null,
       keyFlagLeft: null,
@@ -45,6 +44,7 @@ export default {
 
   methods: {
     update(){
+      //Updates the game with new positions, animations etc
       this.drawCanvas()
       this.drawImages()
       this.path.createPath()
@@ -53,7 +53,8 @@ export default {
     },
 
     findGroundPoint() {
-      // Experimentera med antalet points för att optimera prestanda!
+      // Finds the point straight below the bird
+      // THIS CAN BE OPTIMIZED; For example birds X is fixed, dont have to look through whole array
       for(let i = 0; i < this.path.points.length; i++){
         let groundYDistance = this.pythagorean(this.bird.x, this.bird.y, this.path.points[i].x, this.path.points[i].y)
         if(groundYDistance > this.bird.r && Math.abs(this.bird.x - this.path.points[i].x) < 10){
@@ -71,21 +72,20 @@ export default {
 
     createCanvas () {
       //Creates the canvas
-      //Sets canvas width and height
       this.$refs.game_canvas.width = this.canvas_width
       this.$refs.game_canvas.height = this.canvas_height
       this.canvas = this.$refs.game_canvas;
       this.game_Environment = this.canvas.getContext('2d');
     },
     loadImages () {
-      //Loads images
+      //Loads all the images later to be used for rendering
+      let bgY_offset = 100
+      this.ground_height = this.canvas_height - bgY_offset
+
       this.bg_width = this.canvas_width
-      this.ground_height = 100
-      this.bg_height = this.canvas_height - this.ground_height
+      this.bg_height = this.ground_height
 
       this.bg_Image = new Image();
-      //this.ground_Image = new Image();
-      //this.ground_Image.src = ground;
       this.bg_Image.src = game_background;
     },
 
@@ -99,7 +99,7 @@ export default {
     },
 
     createBird() {
-      //Creates the bird instance
+      //Instantiates the Bird
       let birdRadius = 30, x0offset = 100
       let birdx0 = birdRadius + x0offset
       let birdy0 = this.bg_height - birdRadius
@@ -107,7 +107,7 @@ export default {
     },
 
     createPath(){
-      //temporary
+      //Instantiates the Path
       let pathx0 = 0
       let pathy0 = this.bg_height
       this.path = new Path(pathx0, pathy0, this.canvas_width, this.canvas_height, this.game_Environment, this.pointStepSize)
@@ -120,9 +120,8 @@ export default {
     },
 
     drawImages(){
+      //Draws the images to the screen
       let bgx0 = 0, bgy0 = 0
-      //let groundx0 = 0, groundy0 = this.bg_height
-      //Draws images to the screen
       this.game_Environment.drawImage(this.bg_Image, bgx0, bgy0, this.bg_width, this.bg_height)
 
     },
@@ -131,34 +130,25 @@ export default {
       //FPS på 50 ger att antalet refresh/sekund = 1000/50 = 20
       let refreshTimer = 10
       setInterval(() => this.update(), refreshTimer)
+
     },
 
     keyHandler(keypress) {
-      if (keypress.key == "d" || keypress.key == "ArrowRight" ){
+      //KeyFlag is used to prevent the user from spamming the button
+      if (keypress.keyCode == 32 ){
         this.keyFlagRight += 1
-        if(this.keyFlagRight == 1){
+        if(this.keyFlagRight == 3){
           this.keyFlagRight = 0
-          this.movementHandler("right")
-        }
-      }
-      if (keypress.key == "a" || keypress.key == "ArrowLeft" ){
-        this.keyFlagLeft += 1
-        if(this.keyFlagLeft == 2){
-          this.keyFlagLeft = 0
-          this.movementHandler("left")
+          this.movementHandler("dive")
         }
       }
     },
 
     movementHandler(message) {
-      if(message == "right"){
-          this.path.increaseVelocity()
-      } 
-      //else if (message == "left"){ THIS HANDLES LEFTWARD MOVEMENT
-        //for(let i = 0; i < this.path.points.length; i++){
-          //this.path.points[i].x += 10
-        //}
-      //}
+      //If space is pressed perform action
+      if(message == "dive"){
+        this.bird.dive()
+      }
     },
 
     pythagorean(p1x, p1y, p2x, p2y){
@@ -167,7 +157,6 @@ export default {
   },
 
   mounted: function () {
-
     window.addEventListener("keydown", event => {
       this.keyHandler(event)
     });
@@ -176,7 +165,3 @@ export default {
 
 };
 </script>
-
-<!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped>
-</style>
