@@ -1,7 +1,7 @@
 // This is the Bird class
 // Bird creates the player-controlled object
 // This class also handles all the physics in terms of up and down movement
-// NOTE: The bird does not move on the X-axis 
+// NOTE: The bird does not move on the X-axis
 
 export default class Bird {
     constructor(x0, y0, radius, world) {

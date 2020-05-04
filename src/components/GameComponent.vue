@@ -23,9 +23,9 @@ export default {
       bird : null,
       path: null,
 
-      fps: null, 
+      fps: null,
       times: [],
-      
+
       pointStepSize: 5,
 
       keyFlagRight: null,
@@ -80,7 +80,7 @@ export default {
     loadImages () {
       //Loads all the images later to be used for rendering
       let bgY_offset = 100
-      this.ground_height = this.canvas_height - bgY_offset 
+      this.ground_height = this.canvas_height - bgY_offset
 
       this.bg_width = this.canvas_width
       this.bg_height = this.ground_height
@@ -148,7 +148,7 @@ export default {
       //If space is pressed perform action
       if(message == "dive"){
         this.bird.dive()
-      } 
+      }
     },
 
     pythagorean(p1x, p1y, p2x, p2y){
