@@ -22,7 +22,14 @@ export default {
       game_Environment: null,
       bird : null,
       path: null,
+<<<<<<< HEAD
       
+=======
+
+      fps: null,
+      times: [],
+
+>>>>>>> d27d26b09602f66cb7803853008a1527c42cff3f
       pointStepSize: 5,
 
       keyFlagSpace: null,
@@ -163,7 +170,7 @@ export default {
     loadImages () {
       //Loads all the images later to be used for rendering
       let bgY_offset = 100
-      this.ground_height = this.canvas_height - bgY_offset 
+      this.ground_height = this.canvas_height - bgY_offset
 
       this.bg_width = this.canvas_width
       this.bg_height = this.ground_height
@@ -231,7 +238,7 @@ export default {
       //If space is pressed perform action
       if(message == "dive"){
         this.bird.dive()
-      } 
+      }
     },
 
     pythagorean(p1x, p1y, p2x, p2y){
