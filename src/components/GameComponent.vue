@@ -6,7 +6,7 @@
 
 <script>
 
-import game_background from "../assets/game_background.png";
+import game_background from "../assets/beach.png";
 import ground from "../assets/ground12.png";
 import Bird from "./gameObjects/bird.js";
 import Path from "./gameObjects/path.js"
@@ -22,22 +22,19 @@ export default {
       game_Environment: null,
       bird : null,
       path: null,
-
-      fps: null, 
-      times: [],
       
       pointStepSize: 5,
 
-      keyFlagRight: null,
-      keyFlagLeft: null,
+      keyFlagSpace: null,
 
       bg_Image: null,
-      ground_Image: null,
 
       bg_width: null,
       bg_height: null,
-      ground_width: null,
-      ground_height: null
+      score_variable: 0,
+
+      birdWidth: 91,
+      birdHeight: 58
     }
   },
 
@@ -45,38 +42,124 @@ export default {
   methods: {
     update(){
       //Updates the game with new positions, animations etc
-      this.drawCanvas()
-      this.drawImages()
+      this.render()
       this.path.createPath()
-      let groundPoint = this.findGroundPoint()
-      this.bird.updateBird(groundPoint)
+      this.updateBirdYPosition()
     },
 
-    findGroundPoint() {
+    render(){
+      this.drawCanvas()
+      this.drawImages()
+      this.drawScore()
+    },
+
+    updateBirdYPosition() {
       // Finds the point straight below the bird
       // THIS CAN BE OPTIMIZED; For example birds X is fixed, dont have to look through whole array
-      for(let i = 0; i < this.path.points.length; i++){
-        let groundYDistance = this.pythagorean(this.bird.x, this.bird.y, this.path.points[i].x, this.path.points[i].y)
-        if(groundYDistance > this.bird.r && Math.abs(this.bird.x - this.path.points[i].x) < 10){
-          //Bird is in the air
-          this.bird.isFlying = true
-          return this.path.points[i].y
+      let pointIndexBelowBird = this.getPointIndexBelowBird()
+      let nextPointIndex = pointIndexBelowBird + 1
+      
+      let pointBelowBird = this.path.points[pointIndexBelowBird]
+      let nextPointBelowBird = this.path.points[nextPointIndex]
+      
+      let groundYDistance = this.pythagorean(this.bird.birdCenterPointX, this.bird.y, pointBelowBird.x, pointBelowBird.y)
+
+      if(groundYDistance > this.bird.r){
+        //Bird is in the air
+        this.birdInAir(pointBelowBird)
+      }
+      else if (groundYDistance <= this.bird.r){
+        //Bird is not in the air
+        this.birdOnGround(pointBelowBird, nextPointBelowBird)
+      }
+    },
+
+    birdInAir(pointBelowBird){
+        this.bird.isFlying = true
+        if(this.bird.isFlying == true && this.bird.isOnGround == true){
+          //If bird just left the ground increase birdY velocity
         }
-        else if (groundYDistance <= this.bird.r && Math.abs(this.bird.x - this.path.points[i].x) < 10){
+        this.bird.isOnGround = false
+
+        this.bird.updateBird(pointBelowBird, this.angle)
+
+    },
+
+    birdOnGround(pointBelowBird, nextPointBelowBird){
           //Bird is not in the air
           this.bird.isFlying = false
-          return this.path.points[i].y
+          if(this.bird.isFlying == false && this.bird.isOnGround == false){
+            //If bird just hit ground increases birdX velocity
+            this.path.velocityX = this.path.velocityX + this.bird.velocityY*0.09
+          }
+          this.bird.isOnGround = true
+
+
+          this.upOrDown(pointBelowBird, nextPointBelowBird)
+          this.bird.updateBird(pointBelowBird, this.angle)
+    },
+
+    getPointIndexBelowBird(){
+      //Fetches the point straight below the bird, this point is used
+      //to determine if bird is flying, moving up or moving down in vertical path
+      for(let i = 0; i < this.path.points.length/2; i++){
+        if(Math.abs(this.bird.birdCenterPointX - this.path.points[i].x) <= this.pointStepSize){
+          //If above criteria is met it is the point below the bird thus return it
+          return i
         }
       }
     },
 
+    upOrDown(currentPoint, nextPoint){
+      let deltaX = nextPoint.x - currentPoint.x
+      let deltaY = nextPoint.y - currentPoint.y
+
+      this.angle = Math.atan(deltaY/deltaX)*180/Math.PI
+      if(this.angle < 0){
+        this.birdGoingUp()
+      } else if(this.angle >= 0){  
+        this.birdGoingDown()
+      }
+    },
+
+    angleNextPoint(currentPoint, nextPoint){
+      //Calculates the angle between current point and next point on the track
+      let deltaX = nextPoint.x - currentPoint.x
+      let deltaY = nextPoint.y - currentPoint.y
+
+      this.angle = Math.atan(deltaY/deltaX)*180/Math.PI
+      return this.angle
+    },
+
+    birdGoingUp() {
+      this.path.velocityX = this.path.velocityX + 0.0005*this.angle
+      if(this.path.velocityX > this.path.maxVelocity){
+        this.path.velocityX = this.path.maxVelocity
+      }
+    },
+
+    birdGoingDown() {
+      this.path.velocityX = this.path.velocityX - 0.004*this.angle
+      if(this.path.velocityX > this.path.maxVelocity){
+        this.path.velocityX = this.path.maxVelocity
+      }
+    },
+
+    drawScore() {
+      this.score_variable += 0.2
+      this.game_Environment.fillStyle = "white"
+      this.game_Environment.font = "48px Arial"
+      this.game_Environment.fillText("Your score is: " + Math.round(this.score_variable), this.canvas.width - 500, 45)
+    },
+
     createCanvas () {
       //Creates the canvas
-      this.$refs.game_canvas.width = this.canvas_width
-      this.$refs.game_canvas.height = this.canvas_height
+      this.$refs.game_canvas.width = this.canvas_width 
+      this.$refs.game_canvas.height = this.canvas_height - 5
       this.canvas = this.$refs.game_canvas;
       this.game_Environment = this.canvas.getContext('2d');
     },
+
     loadImages () {
       //Loads all the images later to be used for rendering
       let bgY_offset = 100
@@ -100,10 +183,10 @@ export default {
 
     createBird() {
       //Instantiates the Bird
-      let birdRadius = 30, x0offset = 100
-      let birdx0 = birdRadius + x0offset
-      let birdy0 = this.bg_height - birdRadius
-      this.bird = new Bird(birdx0, birdy0, birdRadius, this.game_Environment)
+      let x0offset = 100
+      let birdx0 = 30 + x0offset
+      let birdy0 = 533
+      this.bird = new Bird(birdx0, birdy0, this.game_Environment)
     },
 
     createPath(){
@@ -136,9 +219,9 @@ export default {
     keyHandler(keypress) {
       //KeyFlag is used to prevent the user from spamming the button
       if (keypress.keyCode == 32 ){
-        this.keyFlagRight += 1
-        if(this.keyFlagRight == 3){
-          this.keyFlagRight = 0
+        this.keyFlagSpace += 1
+        if(this.keyFlagSpace == 3){
+          this.keyFlagSpace = 0
           this.movementHandler("dive")
         }
       }

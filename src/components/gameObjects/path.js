@@ -18,7 +18,7 @@ export default class Path {
         this.points = [this.originPoint]
 
         this.minAmplitude = 0.5
-        this.maxAmplitude = 1.5
+        this.maxAmplitude = 1
         this.hillAmplitude = 1
 
         this.angleInDegrees = null
@@ -26,11 +26,11 @@ export default class Path {
         //Below variable has to be changed, currently not randomized
         this.randomizedBottomHeight = this.canvasHeight - 50
 
-        this.minvelocityX = 10
+        this.minvelocityX = 8
         this.velocityX = this.minvelocityX
 
         this.accelerationX = 0
-        this.maxAcceleration = 6
+        this.maxVelocity = 15
 
         this.preLoadConstant = 150
         this.preLoadLimitX = this.canvasWidth + this.preLoadConstant
@@ -47,7 +47,7 @@ export default class Path {
     updatePath(){
         // Updates the points on the path, removes the ones that are offscreen in terms of X-value
         // The other points are moved forward according to the velocity
-        let offScreen = -40
+        let offScreen = -500
         for(let i = 0; i < this.points.length; i++){
             this.points[i].x -= this.velocityX
 
@@ -131,27 +131,15 @@ export default class Path {
     nextPointY(p1x, p1y, p2x, angle){
         //Identifies the y-position of the next point (p2)
         let deltaHeight = 0
-        let yOffset = 0
-        let frequency = 0
         deltaHeight = this.hillAmplitude*Math.sin(angle)*(p1x-p2x)
         let p2y = deltaHeight + p1y
         return p2y
     }
 
-    increaseVelocity(){
-    }
-
     generateNewTop(hillType){
         if(hillType == "LowHill"){
-            this.lowSlopeTop = Math.floor(Math.random() * (this.maxHeight - 100) + 100)
+            this.lowSlopeTop = Math.floor(Math.random() * (this.maxHeight - 150) + 25)
         }
-    }
-
-    generateAngle(){
-
-    }
-
-    generateOffset(){
     }
 
     generateAmplitude(){
