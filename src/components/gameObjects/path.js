@@ -30,7 +30,7 @@ export default class Path {
         this.velocityX = this.minvelocityX
 
         this.accelerationX = 0
-        this.maxVelocity = 15
+        this.maxVelocity = 14
 
         this.preLoadConstant = 150
         this.preLoadLimitX = this.canvasWidth + this.preLoadConstant
@@ -96,6 +96,7 @@ export default class Path {
     }
 
     generateHill(currentPointX, currentPointY, nextPointX){
+        //Generates a customized hill
         let nextPointY = null
         let angleInRadians = null
 

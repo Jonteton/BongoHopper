@@ -2,13 +2,6 @@
 // Bird creates the player-controlled object
 // This class also handles all the physics in terms of up and down movement
 // NOTE: The bird does not move on the X-axis 
-import wingsUp from "../../assets/bird1.png";
-import bossIMG from "../../assets/boss1.png"
-
-import wingsAlmostUp from "../../assets/bird2.png";
-import wingsAlmostDown from "../../assets/bird3.png";
-import wingsDown from "../../assets/bird4.png";
-
 
 export default class Bird {
     constructor(x0, y0, world, birdIMG) {
@@ -25,41 +18,17 @@ export default class Bird {
         this.startedFlying = 0
 
         this.wingsUp = new Image()
-        this.wingsAlmostUp = new Image()
-        this.wingsAlmostDown = new Image()
-        this.wingsDown = new Image()
-
-        this.boss = new Image()
-
-        this.boss.src = bossIMG
 
         this.wingsUp = birdIMG
         
         this.birdCenterPointX = this.x + 50
         this.birdCenterPointY = this.y + 4
 
-        this.birdImages = []
 
-        //this.wingsUp.width = this.wingsUp.width/2
-        //this.wingsUp.height = this.wingsUp.height/2
-  
-
-
-    }
-
-    loadImages(){
-        this.wingsUp.src = wingsUp
-        this.wingsAlmostUp.src = wingsAlmostUp
-        this.wingsAlmostDown.src = wingsAlmostDown
-        this.wingsDown.src = wingsDown
     }
 
     drawBird() {
-
-        this.game_Environment.drawImage(this.wingsUp, this.x, this.y-this.wingsUp.height/2, this.wingsUp.width/2, this.wingsUp.height/2)
-        this.game_Environment.fillRect(this.birdCenterPointX, this.birdCenterPointY, 5, 5)
-        this.game_Environment.drawImage(this.boss, 300, 0)
-
+        this.game_Environment.drawImage(this.wingsUp, this.x, this.y-this.r, this.wingsUp.width/2, this.wingsUp.height/2)
 
     }
 
@@ -76,7 +45,7 @@ export default class Bird {
         } else if (this.isFlying == true && groundDistance > this.r){
             //Bird still flying
             
-            this.velocityY += 0.02
+            this.velocityY += 0.04
             this.y += this.velocityY
             this.birdCenterPointY = this.y + 4
         }
@@ -84,7 +53,8 @@ export default class Bird {
     }
 
     dive(){
-        this.velocityY = 1.2*(this.velocityY)
+        //Triggered when user pressens SPACE
+        this.velocityY = 1.4*(this.velocityY)
     }
 
     pythagorean(p1x, p1y, p2x, p2y){

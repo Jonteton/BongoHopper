@@ -12,6 +12,7 @@ import bossIMG from "../assets/boss1.png"
 import ground from "../assets/ground12.png";
 import Bird from "./gameObjects/bird.js";
 import Path from "./gameObjects/path.js"
+import Boss from "./gameObjects/boss.js"
 import introAudio from "../assets/intro.mp3"
 
 import {swe_lang} from "../assets/lang/swe.js"
@@ -29,6 +30,7 @@ export default {
       game_Environment: null,
       bird : null,
       path: null,
+      boss: null,
       
       pointStepSize: 5,
 
@@ -36,7 +38,7 @@ export default {
 
       bg_Image: null,
       bird_Image: null,
-      boss_Image: null,
+
 
       first_jump: true,
       first_landing: true,
@@ -44,8 +46,11 @@ export default {
       bg_width: null,
       bg_height: null,
       score_variable: 0,
+      birdX0: 30 + 200,
+      birdRadius : 30,
 
-      lang : null
+      lang : null,
+      interval : null,
     }
   },
 
@@ -56,17 +61,25 @@ export default {
       this.render()
       this.path.createPath()
       this.updateBirdYPosition()
+      this.boss.updateBoss(this.path.velocityX, this.bird.y, this.score_variable)
+
+      if(this.boss.gameLost == true){
+        clearInterval(this.interval)
+        this.gameOver()
+      }
     },
 
     render(){
-      //Handles the View part of MVC. View components are also represented in bird and path separately
+      //Handles the View part of MVC. View components are also represented in bird, path and boss separately
       this.drawCanvas()
       this.drawImages()
       this.drawScore()
 
-      if(this.first_jump == false && this.first_landing == true){
+      if(this.score_variable < 100){
         //If first jump show tutorial
-        this.drawPopUp()
+        this.drawTutorial1()
+      } else if (this.score_variable > 100 && this.score_variable < 200){
+        this.drawTutorial2()
       }
     },
 
@@ -78,6 +91,7 @@ export default {
       
       let pointBelowBird = this.path.points[pointIndexBelowBird]
       let nextPointBelowBird = this.path.points[nextPointIndex]
+
       
       let groundYDistance = this.pythagorean(this.bird.birdCenterPointX, this.bird.y, pointBelowBird.x, pointBelowBird.y)
 
@@ -92,7 +106,9 @@ export default {
     },
 
     birdInAir(pointBelowBird){
+      //If bird is in the air do this
         if(this.first_jump == true){
+          //First jump by the bird
           this.first_jump = false
         }
         this.bird.isFlying = true
@@ -111,21 +127,24 @@ export default {
             this.first_landing = false
           }
           this.bird.isFlying = false
+          
+          this.upOrDown(pointBelowBird, nextPointBelowBird)
+
           if(this.bird.isFlying == false && this.bird.isOnGround == false){
-            //If bird just hit ground increases birdX velocity
-            this.path.velocityX = this.path.velocityX + this.bird.velocityY*0.09
+            //If bird just hit ground increases birdX velocity depending on angle
+            //Angle is negative going up and positive going down
+              this.path.velocityX = this.path.velocityX + this.angle/25
           }
           this.bird.isOnGround = true
 
 
-          this.upOrDown(pointBelowBird, nextPointBelowBird)
           this.bird.updateBird(pointBelowBird, this.angle)
     },
 
     getPointIndexBelowBird(){
       //Fetches the point straight below the bird, this point is used
       //to determine if bird is flying, moving up or moving down in vertical path
-      for(let i = 0; i < this.path.points.length/2; i++){
+      for(let i = 0; i < this.path.points.length; i++){
         if(Math.abs(this.bird.birdCenterPointX - this.path.points[i].x) <= this.pointStepSize){
           //If above criteria is met it is the point below the bird thus return it
           return i
@@ -134,6 +153,7 @@ export default {
     },
 
     upOrDown(currentPoint, nextPoint){
+      //Determines if bird is going up or down a hill
       let deltaX = nextPoint.x - currentPoint.x
       let deltaY = nextPoint.y - currentPoint.y
 
@@ -155,26 +175,37 @@ export default {
     },
 
     birdGoingUp() {
-      this.path.velocityX = this.path.velocityX + 0.0005*this.angle
+      this.path.velocityX = this.path.velocityX - Math.sin(this.angle)/50
       if(this.path.velocityX > this.path.maxVelocity){
         this.path.velocityX = this.path.maxVelocity
       }
     },
 
     birdGoingDown() {
-      this.path.velocityX = this.path.velocityX - 0.004*this.angle
+      this.path.velocityX = this.path.velocityX + Math.sin(this.angle)/50 
       if(this.path.velocityX > this.path.maxVelocity){
         this.path.velocityX = this.path.maxVelocity
       }
     },
 
-    drawPopUp(){
+    drawTutorial1(){
+      //Draws the instructions for movement
       this.game_Environment.fillStyle = "white"
       this.game_Environment.font = "30px Arial"
-      this.game_Environment.fillText(this.lang.tutorial, this.canvas.width/2 - 200, this.canvas_height/2)
+      this.game_Environment.fillText(this.lang.tutorial1, this.canvas.width/2 - 200, this.canvas_height/2)
+      this.game_Environment.fillText(this.lang.tutorial12, this.canvas.width/2 - 200, this.canvas_height/2 + 40)
+
+    },
+
+    drawTutorial2(){
+      //Draws instructions for the losing criteria
+      this.game_Environment.fillStyle = "white"
+      this.game_Environment.font = "30px Arial"
+      this.game_Environment.fillText(this.lang.tutorial2, this.canvas.width/2 - 200, this.canvas_height/2)
     },
 
     drawScore() {
+      //Draws the score to the screen
       this.score_variable += 0.2
       this.game_Environment.fillStyle = "white"
       this.game_Environment.font = "48px Arial"
@@ -199,11 +230,9 @@ export default {
 
       this.bg_Image = new Image();
       this.bird_Image = new Image();
-      this.boss_Image = new Image();
 
       this.bird_Image.src = birdIMG
       this.bg_Image.src = game_background;
-      this.boss_Image.src = bossIMG
 
 
     },
@@ -214,11 +243,18 @@ export default {
       this.createCanvas()
       this.loadImages()
       this.createPath()
+      this.createBoss()
       this.createBird()
       this.initGameLoop()
+
+      if(this.boss.gameLost == true){
+        //loss condition checked in boss class
+        clearInterval(this.interval)
+      }
     },
 
     loadLanguage(){
+      //Checks the cookie for language option
       if(document.cookie == "english"){
         this.lang = eng_lang
       } else if (document.cookie == "swedish"){
@@ -227,12 +263,15 @@ export default {
       }
     },
 
+    createBoss() {
+      this.boss = new Boss(this.game_Environment, this.birdX0)
+    },
+
     createBird() {
       //Instantiates the Bird
-      let x0offset = 100
-      let birdx0 = 30 + x0offset
+
       let birdy0 = this.bg_height
-      this.bird = new Bird(birdx0, birdy0, this.game_Environment, this.bird_Image)
+      this.bird = new Bird(this.birdX0, birdy0, this.game_Environment, this.bird_Image)
     },
 
     createPath(){
@@ -252,17 +291,17 @@ export default {
       //Draws the images to the screen
       let bgx0 = 0, bgy0 = 0
       this.game_Environment.drawImage(this.bg_Image, bgx0, bgy0, this.bg_width, this.bg_height)
-      this.game_Environment.drawImage(this.boss_Image, 0, 0)
 
 
     },
 
     initGameLoop() {
       //FPS på 50 ger att antalet refresh/sekund = 1000/50 = 20
+      
       let audio1 = new Audio(introAudio)
       audio1.play()
       let refreshTimer = 10
-      setInterval(() => this.update(), refreshTimer)
+      this.interval = setInterval(() => this.update(), refreshTimer)
 
     },
 
@@ -275,6 +314,11 @@ export default {
           this.movementHandler("dive")
         }
       }
+      if (keypress.keyCode == 13 && this.boss.gameLost == true ){
+        this.score_variable = 0
+        this.loadAssets()
+
+      }
     },
 
     movementHandler(message) {
@@ -282,6 +326,16 @@ export default {
       if(message == "dive"){
         this.bird.dive()
       }
+    },
+
+    gameOver(){
+      //Triggered when game is over
+      this.game_Environment.fillStyle = "white"
+      this.game_Environment.font = "40px Arial"
+      this.game_Environment.fillText(this.lang.endText1 + Math.round(this.score_variable) + this.lang.endText2, this.canvas_width /3, this.canvas_height/3)
+      this.game_Environment.fillStyle = "black"
+      this.game_Environment.fillText(this.lang.endText3, this.canvas_width /3, this.canvas_height/3 + 40)
+
     },
 
     pythagorean(p1x, p1y, p2x, p2y){
