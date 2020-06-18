@@ -10,9 +10,14 @@ import game_background from "../assets/beach.png";
 import ground from "../assets/ground12.png";
 import Bird from "./gameObjects/bird.js";
 import Path from "./gameObjects/path.js"
+import introAudio from "../assets/intro.mp3"
+
+import {swe_lang} from "../assets/lang/swe.js"
+import {eng_lang} from "../assets/lang/eng.js"
 
 export default {
   name: "Game",
+
 
   data: function(){
     return {
@@ -22,26 +27,24 @@ export default {
       game_Environment: null,
       bird : null,
       path: null,
-<<<<<<< HEAD
       
-=======
-
-      fps: null,
-      times: [],
-
->>>>>>> d27d26b09602f66cb7803853008a1527c42cff3f
       pointStepSize: 5,
 
       keyFlagSpace: null,
 
       bg_Image: null,
 
+      first_jump: true,
+      first_landing: true,
+
       bg_width: null,
       bg_height: null,
       score_variable: 0,
 
       birdWidth: 91,
-      birdHeight: 58
+      birdHeight: 58,
+
+      lang : null
     }
   },
 
@@ -55,9 +58,15 @@ export default {
     },
 
     render(){
+      //Handles the View part of MVC. View components are also represented in bird and path separately
       this.drawCanvas()
       this.drawImages()
       this.drawScore()
+
+      if(this.first_jump == false && this.first_landing == true){
+        //If first jump show tutorial
+        this.drawPopUp()
+      }
     },
 
     updateBirdYPosition() {
@@ -82,6 +91,9 @@ export default {
     },
 
     birdInAir(pointBelowBird){
+        if(this.first_jump == true){
+          this.first_jump = false
+        }
         this.bird.isFlying = true
         if(this.bird.isFlying == true && this.bird.isOnGround == true){
           //If bird just left the ground increase birdY velocity
@@ -94,6 +106,9 @@ export default {
 
     birdOnGround(pointBelowBird, nextPointBelowBird){
           //Bird is not in the air
+          if(this.first_landing == true && this.first_jump == false){
+            this.first_landing = false
+          }
           this.bird.isFlying = false
           if(this.bird.isFlying == false && this.bird.isOnGround == false){
             //If bird just hit ground increases birdX velocity
@@ -152,11 +167,17 @@ export default {
       }
     },
 
+    drawPopUp(){
+      this.game_Environment.fillStyle = "white"
+      this.game_Environment.font = "30px Arial"
+      this.game_Environment.fillText(this.lang.tutorial, this.canvas.width/2 - 200, this.canvas_height/2)
+    },
+
     drawScore() {
       this.score_variable += 0.2
       this.game_Environment.fillStyle = "white"
       this.game_Environment.font = "48px Arial"
-      this.game_Environment.fillText("Your score is: " + Math.round(this.score_variable), this.canvas.width - 500, 45)
+      this.game_Environment.fillText(this.lang.scoretext + Math.round(this.score_variable), this.canvas.width - 500, 45)
     },
 
     createCanvas () {
@@ -181,6 +202,7 @@ export default {
 
     loadAssets () {
       //Loads assets to be used, only exectued once
+      this.loadLanguage()
       this.createCanvas()
       this.loadImages()
       this.createPath()
@@ -188,11 +210,20 @@ export default {
       this.initGameLoop()
     },
 
+    loadLanguage(){
+      if(document.cookie == "english"){
+        this.lang = eng_lang
+      } else if (document.cookie == "swedish"){
+        this.lang = swe_lang
+
+      }
+    },
+
     createBird() {
       //Instantiates the Bird
       let x0offset = 100
       let birdx0 = 30 + x0offset
-      let birdy0 = 533
+      let birdy0 = this.bg_height
       this.bird = new Bird(birdx0, birdy0, this.game_Environment)
     },
 
@@ -218,6 +249,8 @@ export default {
 
     initGameLoop() {
       //FPS på 50 ger att antalet refresh/sekund = 1000/50 = 20
+      let audio1 = new Audio(introAudio)
+      audio1.play()
       let refreshTimer = 10
       setInterval(() => this.update(), refreshTimer)
 
