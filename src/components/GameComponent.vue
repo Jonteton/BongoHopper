@@ -7,6 +7,8 @@
 <script>
 
 import game_background from "../assets/beach.png";
+import birdIMG from "../assets/bird2.png";
+import bossIMG from "../assets/boss1.png"
 import ground from "../assets/ground12.png";
 import Bird from "./gameObjects/bird.js";
 import Path from "./gameObjects/path.js"
@@ -33,6 +35,8 @@ export default {
       keyFlagSpace: null,
 
       bg_Image: null,
+      bird_Image: null,
+      boss_Image: null,
 
       first_jump: true,
       first_landing: true,
@@ -40,9 +44,6 @@ export default {
       bg_width: null,
       bg_height: null,
       score_variable: 0,
-
-      birdWidth: 91,
-      birdHeight: 58,
 
       lang : null
     }
@@ -197,7 +198,14 @@ export default {
       this.bg_height = this.ground_height
 
       this.bg_Image = new Image();
+      this.bird_Image = new Image();
+      this.boss_Image = new Image();
+
+      this.bird_Image.src = birdIMG
       this.bg_Image.src = game_background;
+      this.boss_Image.src = bossIMG
+
+
     },
 
     loadAssets () {
@@ -224,7 +232,7 @@ export default {
       let x0offset = 100
       let birdx0 = 30 + x0offset
       let birdy0 = this.bg_height
-      this.bird = new Bird(birdx0, birdy0, this.game_Environment)
+      this.bird = new Bird(birdx0, birdy0, this.game_Environment, this.bird_Image)
     },
 
     createPath(){
@@ -244,6 +252,8 @@ export default {
       //Draws the images to the screen
       let bgx0 = 0, bgy0 = 0
       this.game_Environment.drawImage(this.bg_Image, bgx0, bgy0, this.bg_width, this.bg_height)
+      this.game_Environment.drawImage(this.boss_Image, 0, 0)
+
 
     },
 

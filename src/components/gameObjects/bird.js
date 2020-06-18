@@ -3,13 +3,15 @@
 // This class also handles all the physics in terms of up and down movement
 // NOTE: The bird does not move on the X-axis 
 import wingsUp from "../../assets/bird1.png";
+import bossIMG from "../../assets/boss1.png"
+
 import wingsAlmostUp from "../../assets/bird2.png";
 import wingsAlmostDown from "../../assets/bird3.png";
 import wingsDown from "../../assets/bird4.png";
 
 
 export default class Bird {
-    constructor(x0, y0, world) {
+    constructor(x0, y0, world, birdIMG) {
         this.x = x0;
         this.y = y0;
         this.r = 30;
@@ -27,30 +29,37 @@ export default class Bird {
         this.wingsAlmostDown = new Image()
         this.wingsDown = new Image()
 
-        this.wingsUp.src = wingsUp
-        this.wingsAlmostUp.src = wingsAlmostUp
-        this.wingsAlmostDown.src = wingsAlmostDown
-        this.wingsDown.src = wingsDown
+        this.boss = new Image()
 
-        this.wingsUp.width = this.wingsUp.width/2
-        this.wingsUp.height = this.wingsUp.height/2
-        this.wingsAlmostUp.width = this.wingsAlmostUp.width/2
-        this.wingsAlmostUp.height = this.wingsAlmostUp.height/2
-        this.wingsAlmostDown.width = this.wingsAlmostDown.width/2
-        this.wingsAlmostDown.height = this.wingsAlmostDown.height/2
-        this.wingsDown.width = this.wingsDown.width/2
-        this.wingsDown.height = this.wingsDown.height/2
+        this.boss.src = bossIMG
 
+        this.wingsUp = birdIMG
+        
         this.birdCenterPointX = this.x + 50
         this.birdCenterPointY = this.y + 4
 
         this.birdImages = []
 
+        //this.wingsUp.width = this.wingsUp.width/2
+        //this.wingsUp.height = this.wingsUp.height/2
+  
+
+
     }
 
-    drawBird(angle) {
-        this.game_Environment.drawImage(this.wingsUp, this.x, this.y-this.wingsUp.height/2, this.wingsUp.width, this.wingsUp.height)
-        //this.game_Environment.fillRect(this.birdCenterPointX, this.birdCenterPointY, 5, 5)
+    loadImages(){
+        this.wingsUp.src = wingsUp
+        this.wingsAlmostUp.src = wingsAlmostUp
+        this.wingsAlmostDown.src = wingsAlmostDown
+        this.wingsDown.src = wingsDown
+    }
+
+    drawBird() {
+
+        this.game_Environment.drawImage(this.wingsUp, this.x, this.y-this.wingsUp.height/2, this.wingsUp.width/2, this.wingsUp.height/2)
+        this.game_Environment.fillRect(this.birdCenterPointX, this.birdCenterPointY, 5, 5)
+        this.game_Environment.drawImage(this.boss, 300, 0)
+
 
     }
 

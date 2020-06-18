@@ -53,7 +53,12 @@ export default {
     switchPage(){
       this.$router.push({ name: 'Game', params: {lang : this.lang}}) 
     }
-  }
+  },
+
+  mounted: function () {
+    document.cookie = "english; path=/"
+    this.lang = eng_lang
+  },
 
 
 };
